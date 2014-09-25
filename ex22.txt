@@ -1,0 +1,62 @@
+# Print stuff in the console
+print "" , variable, ""
+or
+print """
+"""
+
+# Other ways to print stuff
+%s string
+%r raw output
+%d decimal
+\n for a new line
+\t for tab
+\ generally used as an escape sequence
+
+# Do more than one with %
+print "%d %s" % (x, y)
+
+
+# <- Lets you comment stuffs
+
+# The following are operators
++ adds, - subtracts, / divides (truncates), * multiplies, % is modulus the remainder
+< less than, > greater than, <= less than/equal, >= greater than/equal
+
+# = assigns variables
+variableThingy = 1
+
+# Input stuff, assign to variables or w/e
+raw_input("This is an input prompt: ")
+
+# Importing packages/modules/libraries and argument variables
+from sys import argv
+
+# Check something that exists
+from os.path import exists
+
+#  Opening text files
+txt = open(filename)
+
+# Read it!
+print txt.read()
+txt.readline()
+
+# Truncate it! Basically removes everything unless specified
+txt.truncate()
+
+# Write stuff?
+txt.write()
+
+# Close text files
+txt.close()
+
+# Seek through text files
+txt.seek()
+
+# Create a function
+def nameOfFunc(*args):
+	<statement>
+	<statement>
+	return <statement> # Lets you return stuff from a function
+
+
