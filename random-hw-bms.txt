@@ -1,0 +1,267 @@
+/* Name: Baron Sunoko
+   ID:   1000911157
+   CSE 2320 - HW 1
+   Goal of this assignment is understanding mergesort & binary search.
+*/
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+int convertR(int x, int y);
+int convertTheta(int r, int y);
+void mergeSort(int **in, int m);
+void mergeAB(int **left, int **right, int **aux, int mid, int high);
+int binSearchCount(int **arr, int n, int theta);
+int binSearchLeft(int **arr, int n, int theta);
+int binSearchRight(int **arr, int n, int theta);
+void free2Darray(int** arr, int rows);
+void print2DarrP(int **arr, int rows, int col);
+
+
+int main(void){
+	//Dynamically Allocate 2D Array
+	int n;                           // number of rows in array
+	int i, j, queries;               //queries is for how many binary searches to conduct
+	int col = 2;                         //2 col since 2D points
+	int **Pts;                       //declare 2D array of pointers
+	//printf("Number of coordinates:\n"); //used only for console testing purposes
+	scanf("%d", &n);
+	Pts = malloc(n * sizeof(int *));               //allocate memory for 1st dimension
+	for (i = 0; i < n; i++){                            //loop n times based off row
+		Pts[i] = (int *)malloc(col * sizeof(int)); //allocate memory for 2nd dimension
+	}
+
+	//Fill Array with x, y Coordinates
+	//Pts[i][0] = x, Pts[i][1] = y
+	//printf("Enter %d coordinates:\n", n);  //used only for console testing purposes
+	for (i = 0; i < n; i++){                //loop n times based off row
+		for (j = 0; j < col; j++){          //loop 2 times based off col
+			scanf("%d", &Pts[i][j]);
+			//printf("%d ", Pts[i][j]); //TESTING WHETHER INPUTS WERE STORED PROPERLY
+		}
+		//printf("\n"); //for testing only
+	}
+
+	//Convert the Cartesian to Polar Coordinates
+	//Pts[i][0] = r, Pts[i][1] = theta
+	for (i = 0; i < n; i++){
+        Pts[i][0] = convertR(Pts[i][0], Pts[i][1]);
+        //printf("%d ", Pts[i][0]); //test whether point was converted properly
+        Pts[i][1] = convertTheta(Pts[i][0], Pts[i][1]);
+        //printf("%d", Pts[i][1]);  //test whether point was converted properly
+        //printf("\n"); //comment out when not testing
+	}
+    //printf("\n"); //comment out later after testing
+
+    //Mergesort Coordinates
+	mergeSort(Pts, n);
+
+	//Print Sorted Array
+	//print2DarrP(Pts, n, col);
+
+	//Conduct binary search queries
+	//printf("Input number of queries to conduct:\n");
+	scanf("%d", &queries);
+	for(i = 1; i <= queries; i++){
+        int x, y;        //create temp x, y variables
+        int r, theta;    //create temp r, theta variables
+        //printf("Input x coordinate:\n"); //for testing purposes
+        scanf("%d", &x);
+        //printf("Input y coordinate:\n"); //for testing purposes
+        scanf("%d", &y);
+        r = convertR(x, y);
+        theta = convertTheta(r, y);
+        int count = binSearchCount(Pts, n-1, theta); //number of duplicate angles
+        printf("%d %d %d\n", x, y, count);
+	}
+
+	//Freeing unsorted 2D Array Memory
+	free2Darray(Pts, n);
+
+	return 0;
+}
+
+void mergeAB(int **left, int **right, int **aux, int mid, int high){
+    //Keep track of what the current element is in each array
+    int i = 0, j = 0, k = 0;
+
+    //compare individual values in each array one at a time
+    while(i < mid && j < high){
+        /*//Used to keep track of what is currently being sorted
+        //comment out after testing
+        printf("left[%d][1] = %d\n", i, left[i][1]);
+        printf("right[%d][1] = %d\n", j, right[j][1]);
+        printf("\n");*/
+
+        //left has smaller angle
+        if ((left[i][1] < right[j][1])){
+            aux[k][0] = left[i][0];
+            aux[k++][1] = left[i++][1];
+        }
+        //right has smaller angle
+        else{
+            aux[k][0] = right[j][0];
+            aux[k++][1] = right[j++][1];
+        }
+    }
+
+    //if else statements for when one array runs out elements before the other
+    if (i < mid){
+        for (; i < mid; i++){
+            aux[k][0] = left[i][0];
+            aux[k++][1] = left[i][1];
+        }
+    }
+
+    else{
+        for (; j < high; j++){
+            aux[k][0] = right[j][0];
+            aux[k++][1] = right[j][1];
+        }
+    }
+}
+
+void mergeSort(int **in, int m){
+    int i, j, col = 2;
+    int mL, mR;
+    int **inL, **inR;
+
+    //Exit recursion when condition met
+    if(m < 2){
+        return;
+    }
+
+    //create two temp arrays
+    mL = m/2;
+    mR = m - mL;
+    inL = malloc(mL * sizeof(int));
+    inR = malloc(mR * sizeof(int));
+    for(i = 0; i < mL; i++){
+        inL[i] = (int *)malloc(col * sizeof(int));
+    }
+    for(i = 0; i < mR; i++){
+        inR[i] = (int *)malloc(col * sizeof(int));
+    }
+
+    //split up main array in half to temp arrays
+    for(i = 0; i < mL; i++){
+        for(j = 0; j < col; j++)
+            inL[i][j] = in[i][j];
+    }
+    for(i = 0; i < mR; i++){
+        for(j = 0; j < col; j++)
+            inR[i][j] = in[i+mL][j];
+    }
+
+    //Recursively call to partition followed by merging
+    mergeSort(inL, mL);
+    mergeSort(inR, mR);
+    mergeAB(inL, inR, in, mL, mR);
+
+    //Freeing the 2 temp arrays
+    free2Darray(inL, mL);
+    free2Darray(inR, mR);
+
+}
+
+int binSearchCount(int **arr, int n, int theta){
+    int count = 0;       //number of points with same theta
+    int left, right;     //upper and lower range of the number of count
+
+    left = binSearchLeft(arr, n, theta);
+    right = binSearchRight(arr, n, theta);
+
+    //check if there was not matching theta
+    if((left == -1) || (right == -1))
+        return count;
+    //check to that there was more than one of the same theta
+    else if ((arr[left][1] == theta) && (arr[right][1] == theta)){
+        count = right - left + 1;
+        return count;
+    }
+    //if there was only one occurrence of theta
+    else
+        return count = 1;
+
+}
+
+int binSearchLeft(int **arr, int n, int theta){
+    int low, mid, high;
+    low = 0;
+    high = n -1;
+
+    while(low <= high){
+        mid = (low + high)/2;
+        if(arr[mid][1] == theta)
+            return low;
+        if(arr[mid][1] < theta)
+            low = mid+1;
+        else
+            high = mid+1;
+    }
+
+    return -1;
+
+}
+
+int binSearchRight(int **arr, int n, int theta){
+    int low, mid, high;
+    low = 0;
+    high = n -1;
+
+    while(low <= high){
+        mid = (low + high)/2;
+        if(arr[mid][1] == theta)
+            return high;
+        if(arr[mid][1] > theta)
+            high = mid+1;
+        else
+            low = mid+1;
+    }
+
+    return -1;
+}
+
+int convertR(int x, int y){
+	//used to convert Cartesian x & y to r in polar coordinates
+	int r;      //new polar r coordinate
+	double z;
+	//int x1 = *x, y1 = *y; //holds the value of the passed in addresses
+
+	//Pythagorean theorem
+	z = (x * x) + (y * y);
+	r = sqrt(z) + .5;
+	return r;
+}
+
+int convertTheta(int r, int y){
+    //use the converted r and y to find theta
+    double PI = 3.14159265; //define value of PI
+    double fr = r, fy = y;  //change from int to double to use for calculations
+    double theta;
+    double temp = fy/fr;
+    theta = asin(temp)*180/PI + .5;
+    /*//for the case when theta is negative
+    if(theta < 0)
+        theta += 2*PI;
+    */
+    return theta;
+}
+
+void free2Darray(int** arr, int rows){
+    int i;
+    for(i = 0; i < rows; i++)
+        free(arr[i]);
+    free(arr);
+}
+
+
+void print2DarrP(int **arr, int rows, int col){
+    int i, j;
+    for (i = 0; i < rows; i++){
+		for (j = 0; j < col; j++){
+			printf("%d ", arr[i][j]);
+		}
+		printf("\n");
+	}
+}
